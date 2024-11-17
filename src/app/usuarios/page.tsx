@@ -1,7 +1,7 @@
-"use client"; // Adicione esta linha no topo do arquivo
+"use client"; // Certifique-se de que essa linha está no topo
 
 import React, { useEffect, useState } from "react";
-import DashboardSidebar from "../../components/Sidebar";
+import DashboardSidebar from "../../components/Sidebar/Sidebar";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -12,64 +12,55 @@ interface Usuario {
   cargo: string;
 }
 
+interface Membro {
+  id: number;
+  nome: string;
+}
+
 const UsuariosPage = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [members, setMembers] = useState<Membro[]>([]);
   const [showAddPopup, setShowAddPopup] = useState(false);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [cargo, setCargo] = useState("Levita");
   const [confirmarSenha, setConfirmarSenha] = useState("");
-  const [senhaAtual, setSenhaAtual] = useState("");
-  const [novaSenha, setNovaSenha] = useState("");
-  const [usuarioIdToDelete, setUsuarioIdToDelete] = useState<number | null>(
-    null
-  );
-  const [showEditPasswordPopup, setShowEditPasswordPopup] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const [usuarioIdToEditPassword, setUsuarioIdToEditPassword] = useState<
-    number | null
-  >(null);
+  const [cargo, setCargo] = useState("Levita");
+  const [membroId, setMembroId] = useState<number | null>(null);
 
-  // Buscar usuários
   useEffect(() => {
     const fetchUsuarios = async () => {
       try {
         const response = await fetch("/api/users");
-        const data = await response.json();
-        setUsuarios(data);
+        if (response.ok) {
+          const data: Usuario[] = await response.json();
+          setUsuarios(data);
+        } else {
+          toast.error("Erro ao buscar usuários.");
+        }
       } catch (error) {
-        toast.error("Erro ao buscar usuários.");
+        toast.error("Erro ao conectar com o servidor.");
+      }
+    };
+
+    const fetchMembers = async () => {
+      try {
+        const response = await fetch("/api/members");
+        if (response.ok) {
+          const data: Membro[] = await response.json();
+          setMembers(data);
+        } else {
+          toast.error("Erro ao buscar membros.");
+        }
+      } catch (error) {
+        toast.error("Erro ao conectar com o servidor.");
       }
     };
 
     fetchUsuarios();
+    fetchMembers();
   }, []);
 
-  const handleDelete = async (userId: number) => {
-    if (!confirmDelete) {
-      setConfirmDelete(true);
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/users/${userId}`, {
-        method: "DELETE",
-      });
-      if (response.ok) {
-        toast.success("Usuário deletado com sucesso.");
-        setUsuarios(usuarios.filter((user) => user.id !== userId));
-        setConfirmDelete(false);
-      } else {
-        const data = await response.json();
-        toast.error(data.message || "Erro ao deletar usuário.");
-      }
-    } catch (error) {
-      toast.error("Erro ao deletar usuário.");
-    }
-  };
-
-  // Adicionar novo usuário
   const handleAddUser = async () => {
     if (!nome || !email || !senha || !confirmarSenha) {
       toast.error("Preencha todos os campos.");
@@ -85,53 +76,25 @@ const UsuariosPage = () => {
       const response = await fetch("/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, email, senha, cargo }),
+        body: JSON.stringify({ nome, email, senha, cargo, membroId }),
       });
 
       if (response.ok) {
-        const newUser = await response.json();
+        const newUser: Usuario = await response.json();
         setUsuarios([...usuarios, newUser]);
         toast.success("Usuário adicionado com sucesso.");
-        setShowAddPopup(false); // Fechar o popup após adicionar
-        // Resetar os campos
+        setShowAddPopup(false);
         setNome("");
         setEmail("");
         setSenha("");
         setConfirmarSenha("");
         setCargo("Levita");
+        setMembroId(null);
       } else {
-        throw new Error();
-      }
-    } catch {
-      toast.error("Erro ao adicionar usuário.");
-    }
-  };
-
-  //editar usuarios
-  const handleEditPassword = async () => {
-    if (!senhaAtual || !novaSenha) {
-      toast.error("Preencha todos os campos.");
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/users/${usuarioIdToEditPassword}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ senhaAtual, novaSenha }),
-      });
-
-      if (response.ok) {
-        toast.success("Senha alterada com sucesso.");
-        setShowEditPasswordPopup(false);
-        setSenhaAtual("");
-        setNovaSenha("");
-      } else {
-        const data = await response.json();
-        toast.error(data.message || "Erro ao editar senha.");
+        toast.error("Erro ao adicionar usuário.");
       }
     } catch (error) {
-      toast.error("Erro ao editar a senha.");
+      toast.error("Erro ao adicionar usuário.");
     }
   };
 
@@ -156,7 +119,6 @@ const UsuariosPage = () => {
                 <th className="py-2 px-4 border-b text-left">Nome</th>
                 <th className="py-2 px-4 border-b text-left">Email</th>
                 <th className="py-2 px-4 border-b text-left">Cargo</th>
-
                 <th className="py-2 px-4 border-b text-center">Ações</th>
               </tr>
             </thead>
@@ -165,19 +127,16 @@ const UsuariosPage = () => {
                 <tr key={usuario.id}>
                   <td className="py-2 px-4 border-b">{usuario.nome}</td>
                   <td className="py-2 px-4 border-b">{usuario.email}</td>
-                  <td className="px-4 py-2 border-b">{usuario.cargo}</td>
+                  <td className="py-2 px-4 border-b">{usuario.cargo}</td>
                   <td className="py-2 px-4 border-b text-center">
                     <button
-                      onClick={() => {
-                        setShowEditPasswordPopup(true);
-                        setUsuarioIdToEditPassword(usuario.id);
-                      }}
+                      onClick={() => {}}
                       className="bg-yellow-500 text-white py-1 px-2 rounded hover:bg-yellow-600 mr-2"
                     >
-                      Editar Senha
+                      Editar
                     </button>
                     <button
-                      onClick={() => handleDelete(usuario.id)}
+                      onClick={() => {}}
                       className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600"
                     >
                       Deletar
@@ -228,12 +187,21 @@ const UsuariosPage = () => {
                 className="border p-2 w-full mb-4 rounded"
               >
                 <option value="Levita">Levita</option>
-                <option value="Tesoureiro">Tesoureiro</option>
-                <option value="Cooperador">Cooperador</option>
-                <option value="Diácono">Diácono</option>
+                <option value="Líder">Líder</option>
                 <option value="Pastor">Pastor</option>
               </select>
-
+              <select
+                value={membroId || ""}
+                onChange={(e) => setMembroId(Number(e.target.value))}
+                className="border p-2 w-full mb-4 rounded"
+              >
+                <option value="">Selecione o Membro</option>
+                {members.map((membro) => (
+                  <option key={membro.id} value={membro.id}>
+                    {membro.nome}
+                  </option>
+                ))}
+              </select>
               <div className="flex justify-end space-x-4">
                 <button
                   onClick={() => setShowAddPopup(false)}
@@ -243,7 +211,7 @@ const UsuariosPage = () => {
                 </button>
                 <button
                   onClick={handleAddUser}
-                  className="py-2 px-4 bg-green-500 text-white rounded hover:bg-green-600"
+                  className="py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600"
                 >
                   Adicionar
                 </button>
@@ -252,45 +220,8 @@ const UsuariosPage = () => {
           </div>
         )}
 
-        {/* Popup para editar senha */}
-        {showEditPasswordPopup && usuarioIdToEditPassword !== null && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-              <h3 className="text-xl font-semibold mb-4">Editar Senha</h3>
-              <input
-                type="password"
-                placeholder="Senha Atual"
-                value={senhaAtual}
-                onChange={(e) => setSenhaAtual(e.target.value)}
-                className="border p-2 w-full mb-4 rounded"
-              />
-              <input
-                type="password"
-                placeholder="Nova Senha"
-                value={novaSenha}
-                onChange={(e) => setNovaSenha(e.target.value)}
-                className="border p-2 w-full mb-4 rounded"
-              />
-              <div className="flex justify-end space-x-4">
-                <button
-                  onClick={() => setShowEditPasswordPopup(false)}
-                  className="py-2 px-4 bg-gray-400 text-white rounded hover:bg-gray-500"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleEditPassword}
-                  className="py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600"
-                >
-                  Alterar Senha
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <ToastContainer />
       </div>
-
-      <ToastContainer />
     </div>
   );
 };

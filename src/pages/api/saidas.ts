@@ -1,18 +1,16 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { pool } from "../../db"; // Certifique-se de importar sua configuração MySQL
+import { pool } from "../../db"; // Certifique-se de que o caminho está correto
 
-// Função para buscar as saídas
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   if (req.method === "GET") {
     try {
-      const [rows] = await pool.execute(
-        "SELECT SUM(COALESCE(valor, 0)) AS totalSaidas FROM saidas"
-      );
+      const [rows] = await pool.execute("SELECT valor FROM saidas");
 
-      // Verificar se a resposta é válida
+      console.log("Dados retornados da consulta:", rows); // Depuração para verificar os dados
+
       if (Array.isArray(rows) && rows.length > 0) {
         return res.status(200).json(rows);
       } else {

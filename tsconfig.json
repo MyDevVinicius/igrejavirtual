@@ -20,14 +20,17 @@
     ],
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "typeRoots": ["node_modules/@types"],
+    "types": ["react", "react-dom", "react-modal"]
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "src/pages/api/entradas.ts"
+    "src/pages/api/entradas.ts",
+    "next.config.ts"
   ],
   "exclude": ["node_modules"]
 }
