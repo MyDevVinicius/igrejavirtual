@@ -1,34 +1,45 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { pool } from "../../db";
+import { getClientConnection } from "../../lib/db"; // Certifique-se de ajustar o caminho do db.ts
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // Verificando o método da requisição
+  if (req.method !== "GET") {
+    return res.status(405).json({ message: "Método não permitido" });
+  }
+
+  // Pegando os cabeçalhos enviados pela requisição
+  const chaveVerificacao = req.headers["x-verificacao-chave"] as
+    | string
+    | undefined;
+  const nomeBanco = req.headers["x-nome-banco"] as string | undefined;
+
+  if (!chaveVerificacao || !nomeBanco) {
+    return res.status(400).json({
+      message: "Chave de verificação ou nome do banco não fornecidos.",
+    });
+  }
+
   try {
-    if (req.method === "GET") {
-      console.log("GET request iniciado");
+    // Obtendo a conexão com o banco do cliente usando o nome do banco recebido
+    const connection = await getClientConnection(nomeBanco);
 
-      // Contagem de usuários ativos
-      const [rows]: [any[], any] = await pool.execute(
-        "SELECT COUNT(*) AS ativo_count FROM users WHERE ativo = 1"
-      );
+    // Consulta para contar o número total de usuários na tabela 'usuarios'
+    const [rows] = await connection.execute<any[]>(
+      "SELECT COUNT(*) AS quantidade FROM usuarios"
+    );
 
-      console.log("Resultado da consulta:", rows);
+    // Fechando a conexão
+    connection.release();
 
-      if (rows.length > 0) {
-        return res.status(200).json({ quantidade: rows[0].ativo_count });
-      } else {
-        return res
-          .status(404)
-          .json({ message: "Nenhum usuário ativo encontrado." });
-      }
-    } else {
-      console.log("Método não permitido:", req.method);
-      return res.status(405).json({ message: "Método não permitido." });
-    }
-  } catch (error) {
-    console.error("Erro no handler:", error);
-    return res.status(500).json({ message: "Erro interno do servidor." });
+    // Retornando a quantidade de usuários
+    const quantidade = rows[0].quantidade;
+
+    return res.status(200).json({ quantidade });
+  } catch (error: any) {
+    console.error("Erro ao acessar o banco de dados:", error);
+    return res.status(500).json({ message: "Erro interno do servidor" });
   }
 }

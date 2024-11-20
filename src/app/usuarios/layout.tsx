@@ -1,5 +1,5 @@
 // layout.tsx
-import Sidebar from "../../components/Sidebar/Sidebar"; // Ajuste o caminho da importação
+import Sidebar from "../components/Sidebar/Sidebar"; // Ajuste o caminho da importação
 
 const Layout: React.FC = ({ children }) => {
   return (

@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useState } from "react";
 
 interface ContaAPagar {
@@ -14,19 +15,37 @@ const ContasAPagarList: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>("Todos");
   const [startDateFilter, setStartDateFilter] = useState<string>("");
   const [endDateFilter, setEndDateFilter] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
 
-  // Função para buscar as contas a pagar
   const fetchContas = async () => {
     try {
-      const response = await fetch("/api/contasapagar");
+      const chave = localStorage.getItem("codigo_verificacao");
+      const nomeBanco = localStorage.getItem("nome_banco");
+
+      if (!chave || !nomeBanco) {
+        setError("Chave de verificação ou nome do banco não encontrados.");
+        return;
+      }
+
+      const response = await fetch("/api/contasapagar", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-verificacao-chave": chave,
+          "x-nome-banco": nomeBanco,
+        },
+      });
+
       const data = await response.json();
       if (data.message === "Sucesso") {
         setContas(data.data);
       } else {
         console.error("Erro ao carregar contas", data.message);
+        setError("Erro ao carregar contas");
       }
     } catch (error) {
       console.error("Erro ao buscar contas:", error);
+      setError("Erro ao buscar contas");
     }
   };
 
@@ -149,7 +168,8 @@ const ContasAPagarList: React.FC = () => {
         </div>
       </div>
 
-      <div className="overflow-y-auto max-h-[550px]">
+      {/* Adicionando scroll horizontal para telas menores */}
+      <div className="overflow-x-auto max-h-[360px]">
         <table className="min-w-full table-auto border-collapse">
           <thead>
             <tr className="border-b-2 border-gray-300">

@@ -1,7 +1,7 @@
 "use client"; // Certifique-se de que essa linha está no topo
 
 import React, { useEffect, useState } from "react";
-import DashboardSidebar from "../../components/Sidebar/Sidebar";
+import DashboardSidebar from "../components/Sidebar/Sidebar";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
