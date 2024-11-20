@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image"; // Importando o componente de imagem
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const LoginPage = () => {
   const [codigoVerificacao, setCodigoVerificacao] = useState("");
@@ -28,6 +31,7 @@ const LoginPage = () => {
 
     if (!codigoVerificacao) {
       setErro("O código de verificação é necessário.");
+      toast.error("O código de verificação é necessário.");
       setLoading(false);
       return;
     }
@@ -43,6 +47,7 @@ const LoginPage = () => {
 
       if (data.error) {
         setErro(data.error);
+        toast.error(data.error);
         setLoading(false);
         return;
       }
@@ -51,10 +56,12 @@ const LoginPage = () => {
       localStorage.setItem("nome_banco", data.nome_banco);
       localStorage.setItem("codigo_verificacao", codigoVerificacao);
       setIsCodigoVerificacaoValidado(true); // Código validado com sucesso
+      toast.success("Código validado com sucesso!");
       setLoading(false);
     } catch (error) {
       console.error("Erro ao validar o código de verificação:", error);
       setErro("Erro ao validar o código de verificação.");
+      toast.error("Erro ao validar o código de verificação.");
       setLoading(false);
     }
   };
@@ -66,6 +73,7 @@ const LoginPage = () => {
 
     if (!email || !senha) {
       setErro("Por favor, insira o e-mail e a senha.");
+      toast.error("Por favor, insira o e-mail e a senha.");
       setLoading(false);
       return;
     }
@@ -75,6 +83,7 @@ const LoginPage = () => {
 
     if (!nome_banco || !codigo_verificacao) {
       setErro("Banco de dados do cliente não encontrado.");
+      toast.error("Banco de dados do cliente não encontrado.");
       setLoading(false);
       return;
     }
@@ -95,76 +104,99 @@ const LoginPage = () => {
 
       if (data.error) {
         setErro(data.error);
+        toast.error(data.error);
         setLoading(false);
         return;
       }
 
       // Redireciona para a página do dashboard após login bem-sucedido
+      toast.success("Login realizado com sucesso!");
       router.push("/dashboard");
     } catch (error) {
       console.error("Erro ao autenticar o usuário:", error);
       setErro("Erro ao autenticar o usuário.");
+      toast.error("Erro ao autenticar o usuário.");
       setLoading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-sm mx-auto p-6 bg-white border rounded-md shadow-lg">
-      <h1 className="text-2xl font-semibold mb-4">Login</h1>
-
-      {!isCodigoVerificacaoValidado ? (
-        <div>
-          <label className="block mb-2 text-sm font-medium">
-            Código de Verificação
-          </label>
-          <input
-            type="text"
-            value={codigoVerificacao}
-            onChange={(e) => setCodigoVerificacao(e.target.value)}
-            className="w-full p-2 border rounded mb-4"
-            disabled={loading}
-          />
-          <button
-            onClick={handleCodigoVerificacaoSubmit}
-            className={`w-full py-2 bg-blue-500 text-white rounded ${
-              loading ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-            disabled={loading}
-          >
-            {loading ? "Validando..." : "Validar Código"}
-          </button>
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="w-full max-w-sm p-6 bg-white border rounded-md shadow-lg shadow-media">
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
+        <div className="flex justify-center mb-4">
+          <Image src="/logosoft.png" alt="Logo" width={320} height={100} />{" "}
+          {/* Certifique-se de que a imagem está na pasta public */}
         </div>
-      ) : (
-        <div>
-          <label className="block mb-2 text-sm font-medium">E-mail</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-2 border rounded mb-4"
-            disabled={loading}
-          />
-          <label className="block mb-2 text-sm font-medium">Senha</label>
-          <input
-            type="password"
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-            className="w-full p-2 border rounded mb-4"
-            disabled={loading}
-          />
-          <button
-            onClick={handleLoginSubmit}
-            className={`w-full py-2 bg-blue-500 text-white rounded ${
-              loading ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-            disabled={loading}
-          >
-            {loading ? "Entrando..." : "Entrar"}
-          </button>
-        </div>
-      )}
 
-      {erro && <p className="mt-4 text-red-500 text-sm">{erro}</p>}
+        {!isCodigoVerificacaoValidado ? (
+          <div>
+            <label className="block mb-2 text-sm font-bold text-media">
+              Insira o Código de Verificação
+            </label>
+            <input
+              type="text"
+              value={codigoVerificacao}
+              onChange={(e) => setCodigoVerificacao(e.target.value)}
+              className="w-full p-2 border border-media rounded mb-4"
+              disabled={loading}
+            />
+            <button
+              onClick={handleCodigoVerificacaoSubmit}
+              className={`w-full py-2 bg-media text-white font-bold rounded ${
+                loading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              disabled={loading}
+            >
+              {loading ? "Validando..." : "Validar Código"}
+            </button>
+          </div>
+        ) : (
+          <div>
+            <label className="block mb-2 text-sm font-bold text-media ">
+              E-mail
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-2 border rounded mb-4 border-media"
+              disabled={loading}
+            />
+            <label className="block mb-2 text-sm font-bold text-media">
+              Senha
+            </label>
+            <input
+              type="password"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              className="w-full p-2 border rounded mb-4 border-media"
+              disabled={loading}
+            />
+            <button
+              onClick={handleLoginSubmit}
+              className={`w-full py-2 bg-media text-white rounded ${
+                loading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              disabled={loading}
+            >
+              {loading ? "Entrando..." : "Entrar"}
+            </button>
+          </div>
+        )}
+
+        {erro && <p className="mt-4 text-red-500 text-sm">{erro}</p>}
+      </div>
     </div>
   );
 };

@@ -11,8 +11,10 @@ export default {
       spacing: { "400": "400px", "300": "300px" },
       colors: {
         primary: "#1b5575",
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        forte: "#0b3e4d", // Cor forte
+        textlogo: "#239d8d", // Cor para texto logo
+        media: "#1c6b6e", // Cor para media
+        fraca: "#43cfb6", // Cor fraca
       },
     },
   },
