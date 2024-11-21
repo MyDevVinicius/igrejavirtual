@@ -7,33 +7,28 @@ const getContasAPagar = async (
   nomeBanco: string,
   status?: string
 ): Promise<RowDataPacket[]> => {
-  let sql = "SELECT * FROM contas_a_pagar"; // Consulta básica para retornar todas as contas
+  let sql =
+    "SELECT id, observacao, valor, status, data_vencimento FROM contas_a_pagar";
   const values: any[] = [];
 
-  // Verifica se um status foi fornecido e, se sim, adiciona o filtro na consulta
   if (status && status !== "Todos") {
     sql += " WHERE status = ?";
     values.push(status);
   }
 
-  sql += " ORDER BY data_vencimento ASC"; // Ordena as contas por data de vencimento
+  sql += " ORDER BY data_vencimento ASC";
 
   try {
-    // Conecta ao banco do cliente
     const clientConnection = await getClientConnection(nomeBanco);
-    const [rows] = await clientConnection.query<RowDataPacket[]>(sql, values); // Executa a consulta
-    clientConnection.release(); // Libera a conexão para o pool
+    const [rows] = await clientConnection.query<RowDataPacket[]>(sql, values);
+    clientConnection.release();
     return rows;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao buscar contas a pagar:", error);
-    throw new Error(
-      "Erro ao buscar contas: " +
-        (error instanceof Error ? error.message : "Erro desconhecido")
-    );
+    throw new Error("Erro ao buscar contas a pagar");
   }
 };
 
-// Função para atualizar o status da conta, verificando se está vencida ou não
 const atualizarStatusContas = (contas: RowDataPacket[]): RowDataPacket[] => {
   const today = new Date();
 
@@ -72,13 +67,12 @@ export default async function handler(
         .json({ message: "Chave de verificação inválida." });
     }
 
-    // Conecta ao banco de administração (admin_db)
     const adminConnection = await getAdminConnection();
     const [result] = await adminConnection.query<RowDataPacket[]>(
       "SELECT nome_banco FROM clientes WHERE codigo_verificacao = ?",
       [chave]
     );
-    adminConnection.release(); // Libera a conexão para o pool
+    adminConnection.release();
 
     if (result.length === 0) {
       return res
@@ -88,22 +82,15 @@ export default async function handler(
 
     const nomeBanco = result[0].nome_banco as string;
 
-    // Busca as contas a pagar no banco do cliente
     let contas = await getContasAPagar(nomeBanco, status as string);
-
-    // Atualiza os status das contas (ex.: vencida ou pendente)
     contas = atualizarStatusContas(contas);
 
-    // Retorna os dados das contas
-    res.status(200).json({
-      message: "Sucesso",
-      data: contas,
-    });
+    res.status(200).json({ message: "Sucesso", data: contas });
   } catch (error: any) {
     console.error("Erro ao processar a API de contas a pagar:", error);
     res.status(500).json({
       message: "Erro ao processar contas a pagar",
-      error: error instanceof Error ? error.message : "Erro desconhecido",
+      error: error.message || "Erro desconhecido",
     });
   }
 }
