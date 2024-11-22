@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   FaHome,
@@ -15,24 +14,14 @@ import {
 import { VscGraph } from "react-icons/vsc";
 
 const Sidebar = () => {
-  const [isOpen, setIsOpen] = useState(false); // Controla o estado de abertura da sidebar em telas pequenas
-  const router = useRouter();
-
-  const handleLogout = async () => {
-    try {
-      const response = await fetch("/api/logout", { method: "POST" });
-
-      if (!response.ok) {
-        throw new Error("Falha ao fazer logout");
-      }
-
-      router.push("/login");
-    } catch (error) {
-      console.error("Erro no logout:", error);
-    }
-  };
+  const [isOpen, setIsOpen] = useState(false); // Controla a abertura da sidebar
 
   const toggleSidebar = () => setIsOpen(!isOpen);
+
+  const handleLogout = () => {
+    // Redireciona para a página de login
+    window.location.href = "/login";
+  };
 
   return (
     <div>
@@ -43,15 +32,18 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <div
-        className={`bg-forte text-white p-4 fixed top-0 left-0 h-screen 
-          transition-transform duration-300 transform ${
-            isOpen ? "translate-x-0" : "-translate-x-full"
-          }
-          lg:translate-x-0 lg:w-64 flex flex-col`}
+        className={`bg-forte text-white p-4 fixed top-0 left-0 h-screen transition-transform duration-300 transform ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0 lg:w-64 flex flex-col`}
       >
         {/* Logo */}
         <div className="flex items-center justify-center mb-4 mt-2">
           <img src="/logosoft.png" alt="Logo" className="w-64 h-20" />
+        </div>
+
+        {/* Nome fixo do usuário */}
+        <div className="text-center text-white text-lg mb-4">
+          <p>Bem-vindo(a)</p>
         </div>
 
         {/* Links da sidebar */}
@@ -61,8 +53,7 @@ const Sidebar = () => {
               href="/dashboard"
               className="flex items-center text-lg hover:text-white py-3 px-4 rounded-lg transition transform duration-300 hover:shadow-lg hover:scale-105"
             >
-              <FaHome className="mr-2" />
-              Início
+              <FaHome className="mr-2" /> Início
             </Link>
           </li>
           <li>
@@ -70,8 +61,7 @@ const Sidebar = () => {
               href="/financeiro"
               className="flex items-center text-lg hover:text-white py-3 px-4 rounded-lg transition transform duration-300 hover:shadow-lg hover:scale-105"
             >
-              <FaMoneyCheckAlt className="mr-2" />
-              Financeiro
+              <FaMoneyCheckAlt className="mr-2" /> Financeiro
             </Link>
           </li>
           <li>
@@ -79,8 +69,7 @@ const Sidebar = () => {
               href="/relatorios"
               className="flex items-center text-lg hover:text-white py-3 px-4 rounded-lg transition transform duration-300 hover:shadow-lg hover:scale-105"
             >
-              <VscGraph className="mr-2" />
-              Relatórios
+              <VscGraph className="mr-2" /> Relatórios
             </Link>
           </li>
           <li>
@@ -88,8 +77,7 @@ const Sidebar = () => {
               href="/membros"
               className="flex items-center text-lg hover:text-white py-3 px-4 rounded-lg transition transform duration-300 hover:shadow-lg hover:scale-105"
             >
-              <FaUsers className="mr-2" />
-              Membros
+              <FaUsers className="mr-2" /> Membros
             </Link>
           </li>
           <li>
@@ -97,8 +85,7 @@ const Sidebar = () => {
               href="/usuarios"
               className="flex items-center text-lg hover:text-white py-3 px-4 rounded-lg transition transform duration-300 hover:shadow-lg hover:scale-105"
             >
-              <FaUserShield className="mr-2" />
-              Usuários
+              <FaUserShield className="mr-2" /> Usuários
             </Link>
           </li>
         </ul>
@@ -106,16 +93,13 @@ const Sidebar = () => {
         {/* Rodapé */}
         <div className="space-y-4 mt-auto">
           <button className="flex items-center w-full text-lg bg-yellow-500 text-white hover:bg-yellow-600 py-3 px-4 rounded-lg transition transform duration-300 hover:shadow-lg hover:scale-105">
-            <FaHeadset className="mr-2" />
-            Suporte
+            <FaHeadset className="mr-2" /> Suporte
           </button>
-
           <button
             onClick={handleLogout}
             className="flex items-center w-full text-lg bg-red-500 text-white hover:bg-red-600 py-3 px-4 rounded-lg mt-4 transition transform duration-300 hover:shadow-lg hover:scale-105"
           >
-            <FaSignOutAlt className="mr-2" />
-            Sair
+            <FaSignOutAlt className="mr-2" /> Sair
           </button>
         </div>
       </div>

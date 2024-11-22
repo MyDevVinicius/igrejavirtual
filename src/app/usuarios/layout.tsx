@@ -1,18 +1,87 @@
-// layout.tsx
-import Sidebar from "../components/Sidebar/Sidebar"; // Ajuste o caminho da importação
+"use client";
+
+import React, { useEffect, useState } from "react";
 
 const Layout: React.FC = ({ children }) => {
-  return (
-    <div className="flex h-screen">
-      {/* Sidebar */}
-      <Sidebar />
+  const [statusCliente, setStatusCliente] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-      {/* Conteúdo do Dashboard ajustado para mais próximo da sidebar */}
-      <div className="flex-1 p-6 bg-gray-100 ml-16">
-        {" "}
-        {/* Reduzimos a margem à esquerda de ml-64 para ml-16 */}
-        {children}
+  // Função para buscar o status do cliente via API
+  const fetchClientStatus = async () => {
+    const codigoVerificacao = localStorage.getItem("codigo_verificacao"); // Buscar código de verificação do localStorage
+
+    if (!codigoVerificacao) {
+      setError("Código de verificação não encontrado.");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/clientes`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ codigo_verificacao: codigoVerificacao }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setStatusCliente(data.status); // Recebendo o status do cliente
+      } else {
+        setError(data.error || "Erro ao verificar status do cliente.");
+      }
+    } catch (error) {
+      console.error("Erro ao buscar status do cliente:", error);
+      setError("Erro ao verificar status do cliente.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Efetua a busca do status do cliente quando o componente é montado
+  useEffect(() => {
+    fetchClientStatus();
+  }, []);
+
+  if (isLoading) {
+    return <div className="text-media font-bold">Carregando...</div>; // Você pode adicionar um spinner de carregamento aqui
+  }
+
+  if (error) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="text-6xl text-red-500">❌</div>
+          <h1 className="text-3xl font-semibold text-red-600">Erro</h1>
+          <p className="mt-4 text-xl text-gray-600">{error}</p>
+        </div>
       </div>
+    );
+  }
+
+  if (statusCliente === "inativo") {
+    return (
+      <div className="h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="text-6xl text-red-500">❌</div>
+          <h1 className="text-3xl font-semibold text-red-600">
+            Cliente Bloqueado
+          </h1>
+          <p className="mt-4 text-xl text-gray-600">
+            Entre em contato com o suporte para mais informações.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-screen bg-gray-100">
+      {/* O conteúdo do Layout será exibido apenas se o status for ativo */}
+      <div className="flex-1 p-6 ml-16">{children}</div>
     </div>
   );
 };

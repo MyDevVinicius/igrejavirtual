@@ -1,61 +1,73 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import bcrypt from "bcryptjs";
-import mysql from "mysql2/promise";
+import { getClientConnection } from "../../lib/db"; // Função para conectar ao banco de dados do cliente
+import { RowDataPacket } from "mysql2";
 
-// Função para criar a conexão dinâmica ao banco do cliente
-const getConnection = async (nome_banco: string) => {
-  const pool = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: nome_banco,
-  });
-  return pool;
-};
+interface Usuario extends RowDataPacket {
+  email: string;
+  nome: string;
+  senha: string; // A senha deve ser retornada para comparação
+}
 
-// Função para validar o usuário
-const authHandler = async (req: NextApiRequest, res: NextApiResponse) => {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  // Verifica se o método da requisição é POST
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Método não permitido" });
+    return res
+      .status(405)
+      .json({ error: `Método ${req.method} não permitido` });
   }
 
-  const { email, senha, nome_banco, codigo_verificacao } = req.body;
+  // Extrai os dados do corpo da requisição
+  const { email, senha, nome_banco } = req.body;
 
-  // Verifica se as informações essenciais foram fornecidas
-  if (!email || !senha || !nome_banco || !codigo_verificacao) {
+  // Verifica se todos os campos obrigatórios estão presentes
+  if (!email || !senha || !nome_banco) {
     return res.status(400).json({ error: "Todos os campos são obrigatórios." });
   }
 
   try {
-    // Cria a conexão com o banco de dados dinâmico
-    const pool = await getConnection(nome_banco);
+    // Conectar ao banco de dados do cliente usando o nome_banco
+    const clientConnection = await getClientConnection(nome_banco);
 
-    // Busca o usuário no banco do cliente
-    const [rows] = await pool.query("SELECT * FROM usuarios WHERE email = ?", [
+    if (!clientConnection) {
+      return res
+        .status(500)
+        .json({ error: "Erro ao conectar ao banco de dados do cliente" });
+    }
+
+    // Consulta SQL para verificar o usuário no banco de dados
+    const userSql = "SELECT email, nome, senha FROM usuarios WHERE email = ?";
+    const [userRows] = await clientConnection.execute<Usuario[]>(userSql, [
       email,
     ]);
 
-    if ((rows as any[]).length === 0) {
-      return res.status(404).json({ error: "Usuário não encontrado." });
+    // Verifica se o usuário foi encontrado
+    if (userRows.length === 0) {
+      return res.status(404).json({ error: "Usuário não encontrado" });
     }
 
-    // Verifica a senha
-    const usuario = (rows as any[])[0];
-    const senhaValida = bcrypt.compareSync(senha, usuario.senha); // Usa bcrypt para comparar a senha
+    const user = userRows[0];
+
+    // Verifica se a senha fornecida é válida comparando com a senha hashada no banco
+    const senhaValida = await bcrypt.compare(senha, user.senha);
 
     if (!senhaValida) {
-      return res.status(401).json({ error: "Senha incorreta." });
+      return res.status(401).json({ error: "Credenciais inválidas" });
     }
 
-    // Se tudo estiver correto, retorna o sucesso
-    return res
-      .status(200)
-      .json({ message: "Usuário autenticado com sucesso!" });
+    // Se as credenciais forem válidas, retorna o usuário autenticado
+    return res.status(200).json({
+      message: "Login realizado com sucesso!",
+      usuario: {
+        email: user.email,
+        nome: user.nome,
+      },
+    });
   } catch (error) {
-    console.error("Erro ao validar o usuário:", error);
-    return res.status(500).json({ error: "Erro ao autenticar o usuário." });
+    console.error("Erro na autenticação:", error);
+    return res.status(500).json({ error: "Erro interno do servidor" });
   }
-};
-
-// Exporte a função como default para Next.js reconhecer
-export default authHandler;
+}
