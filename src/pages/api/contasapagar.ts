@@ -8,7 +8,7 @@ const getContasAPagar = async (
   status?: string
 ): Promise<RowDataPacket[]> => {
   let sql =
-    "SELECT id, observacao, valor, status, data_vencimento FROM contas_a_pagar";
+    "SELECT id, observacao, valor, valor_pago, status, data_vencimento FROM contas_a_pagar";
   const values: any[] = [];
 
   if (status && status !== "Todos") {

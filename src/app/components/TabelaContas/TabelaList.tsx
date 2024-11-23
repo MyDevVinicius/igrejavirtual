@@ -8,6 +8,7 @@ interface ContaAPagar {
   id: number;
   observacao: string;
   valor: string;
+  valor_pago: string;
   data_vencimento: string;
   status: string;
 }
@@ -143,6 +144,7 @@ const ContasAPagarList: React.FC = () => {
           <tr>
             <th className="border p-2">Observação</th>
             <th className="border p-2">Valor</th>
+            <th className="border p-2">Valor Pago</th>
             <th className="border p-2">Vencimento</th>
             <th className="border p-2">Status</th>
           </tr>
@@ -155,6 +157,9 @@ const ContasAPagarList: React.FC = () => {
             >
               <td className="p-2 text-justify">{conta.observacao}</td>
               <td className="p-2 text-center">{formatarValor(conta.valor)}</td>
+              <td className="p-2 text-center">
+                {formatarValor(conta.valor_pago)}
+              </td>
               <td className="p-2 text-center">
                 {formatarData(conta.data_vencimento)}
               </td>

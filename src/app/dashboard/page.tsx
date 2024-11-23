@@ -11,6 +11,7 @@ const DashboardPage = () => {
     <Layout>
       <div className="space-y-5 p-4">
         <Dashboard />
+
         <TableList />
       </div>
     </Layout>

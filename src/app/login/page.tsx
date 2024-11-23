@@ -171,19 +171,19 @@ const LoginPage = () => {
 
         {!isCodigoVerificacaoValidado ? (
           <div>
-            <label className="block mb-2 text-sm font-bold">
-              Código de Verificação
+            <label className="block mb-2 text-sm font-bold text-media">
+              Adicione o código de Verificação
             </label>
             <input
               type="text"
               value={codigoVerificacao}
               onChange={(e) => setCodigoVerificacao(e.target.value)}
-              className="w-full p-2 border rounded mb-4"
+              className="w-full p-2 border rounded mb-4 border-media "
               disabled={loading}
             />
             <button
               onClick={handleCodigoVerificacaoSubmit}
-              className={`w-full py-2 bg-blue-500 text-white font-bold rounded ${
+              className={`w-full py-2 bg-media text-white font-bold rounded ${
                 loading ? "opacity-50 cursor-not-allowed" : ""
               }`}
               disabled={loading}
@@ -193,28 +193,32 @@ const LoginPage = () => {
           </div>
         ) : (
           <div>
-            <p className="mb-4 text-sm text-gray-600">
+            <p className="mb-4 text-sm text-media font-bold">
               Licenciado para: {nomeIgreja || "Igreja não definida"}
             </p>
-            <label className="block mb-2 text-sm font-bold">E-mail</label>
+            <label className="block mb-2 text-sm font-bold text-media">
+              E-mail
+            </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-2 border rounded mb-4"
+              className="w-full p-2 border rounded mb-4 border-media "
               disabled={loading}
             />
-            <label className="block mb-2 text-sm font-bold">Senha</label>
+            <label className="block mb-2 text-sm font-bold text-media">
+              Senha
+            </label>
             <input
               type="password"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
-              className="w-full p-2 border rounded mb-4"
+              className="w-full p-2 border rounded mb-4 border-media"
               disabled={loading}
             />
             <button
               onClick={handleLoginSubmit}
-              className={`w-full py-2 bg-blue-500 text-white rounded ${
+              className={`w-full py-2 bg-media text-white rounded ${
                 loading ? "opacity-50 cursor-not-allowed" : ""
               }`}
               disabled={loading}
